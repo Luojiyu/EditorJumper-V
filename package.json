@@ -1,17 +1,17 @@
 {
-  "name": "jumpeditor",
-  "displayName": "JumpEditor",
+  "name": "editorjumper",
+  "displayName": "EditorJumper",
   "description": "A VS Code extension that allows you to seamlessly jump between JetBrains IDEs and other popular code editors (such as VS Code, Cursor, Trae, and Windsurf). It maintains your cursor position and editing context, greatly improving development efficiency in multi-editor environments.",
   "version": "1.0.0",
   "publisher": "wanniwa",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wanniwa/JumpEditor-V"
+    "url": "https://github.com/wanniwa/EditorJumper-V"
   },
   "bugs": {
-    "url": "https://github.com/wanniwa/JumpEditor-V/issues"
+    "url": "https://github.com/wanniwa/EditorJumper-V/issues"
   },
-  "homepage": "https://github.com/wanniwa/JumpEditor-V#readme",
+  "homepage": "https://github.com/wanniwa/EditorJumper-V#readme",
   "engines": {
     "vscode": "^1.81.0"
   },
@@ -37,48 +37,48 @@
   "contributes": {
     "commands": [
       {
-        "command": "jumpeditor.openInJetBrains",
+        "command": "editorjumper.openInJetBrains",
         "title": "Open in JetBrains IDE"
       },
       {
-        "command": "jumpeditor.selectJetBrainsIDE",
+        "command": "editorjumper.selectJetBrainsIDE",
         "title": "Select JetBrains IDE"
       },
       {
-        "command": "jumpeditor.configureIDE",
-        "title": "Configure JumpEditor"
+        "command": "editorjumper.configureIDE",
+        "title": "Configure EditorJumper"
       }
     ],
     "keybindings": [
       {
-        "command": "jumpeditor.openInJetBrains",
+        "command": "editorjumper.openInJetBrains",
         "key": "shift+alt+o"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "command": "jumpeditor.openInJetBrains",
+          "command": "editorjumper.openInJetBrains",
           "group": "navigation",
           "when": "editorTextFocus"
         }
       ],
       "explorer/context": [
         {
-          "command": "jumpeditor.openInJetBrains",
+          "command": "editorjumper.openInJetBrains",
           "group": "navigation"
         }
       ]
     },
     "configuration": {
-      "title": "JumpEditor",
+      "title": "EditorJumper",
       "properties": {
-        "jumpeditor.selectedIDE": {
+        "editorjumper.selectedIDE": {
           "type": "string",
           "default": "IDEA",
           "description": "Currently selected JetBrains IDE"
         },
-        "jumpeditor.ideConfigurations": {
+        "editorjumper.ideConfigurations": {
           "type": "array",
           "default": [
             {

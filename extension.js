@@ -11,9 +11,9 @@ let configPanel = undefined;
  * @param {vscode.ExtensionContext} context
  */
 async function activate(context) {
-	console.log('Congratulations, your extension "jumpeditor" is now active!');
+	console.log('Congratulations, your extension "editorjumper" is now active!');
 
-	const config = vscode.workspace.getConfiguration('jumpeditor');
+	const config = vscode.workspace.getConfiguration('editorjumper');
 	const currentIDE = config.get('selectedIDE');
 	const ideConfigurations = config.get('ideConfigurations');
 	
@@ -25,22 +25,22 @@ async function activate(context) {
 
 	// 创建状态栏项 - 用于选择IDE
 	statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-	statusBarItem.command = 'jumpeditor.selectJetBrainsIDE';
+	statusBarItem.command = 'editorjumper.selectJetBrainsIDE';
 	context.subscriptions.push(statusBarItem);
 	
 	// 创建配置按钮 - 用于打开配置界面
 	const configButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
 	configButton.text = '$(gear)';
-	configButton.tooltip = 'Configure JumpEditor';
-	configButton.command = 'jumpeditor.configureIDE';
+	configButton.tooltip = 'Configure EditorJumper';
+	configButton.command = 'editorjumper.configureIDE';
 	context.subscriptions.push(configButton);
 	configButton.show();
 	
 	updateStatusBar();
 
 	// 注册命令：选择IDE
-	let selectIDECommand = vscode.commands.registerCommand('jumpeditor.selectJetBrainsIDE', async () => {
-		const config = vscode.workspace.getConfiguration('jumpeditor');
+	let selectIDECommand = vscode.commands.registerCommand('editorjumper.selectJetBrainsIDE', async () => {
+		const config = vscode.workspace.getConfiguration('editorjumper');
 		const ideConfigurations = config.get('ideConfigurations');
 		const items = ideConfigurations
 			.filter(ide => !ide.hidden) // 只显示未隐藏的IDE
@@ -61,8 +61,8 @@ async function activate(context) {
 	});
 
 	// 注册命令：在JetBrains中打开
-	let openInJetBrainsCommand = vscode.commands.registerCommand('jumpeditor.openInJetBrains', async (uri) => {
-		const config = vscode.workspace.getConfiguration('jumpeditor');
+	let openInJetBrainsCommand = vscode.commands.registerCommand('editorjumper.openInJetBrains', async (uri) => {
+		const config = vscode.workspace.getConfiguration('editorjumper');
 		const selectedIDE = config.get('selectedIDE');
 		const ideConfigurations = config.get('ideConfigurations');
 		const ideConfig = ideConfigurations.find(ide => ide.name === selectedIDE);
@@ -202,7 +202,7 @@ async function activate(context) {
 	});
 
 	// 注册新的配置命令
-	let configureIDECommand = vscode.commands.registerCommand('jumpeditor.configureIDE', () => {
+	let configureIDECommand = vscode.commands.registerCommand('editorjumper.configureIDE', () => {
 		createConfigurationPanel(context);
 	});
 
@@ -212,7 +212,7 @@ async function activate(context) {
 
 	// 监听配置变化
 	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
-		if (e.affectsConfiguration('jumpeditor')) {
+		if (e.affectsConfiguration('editorjumper')) {
 			updateStatusBar();
 		}
 	}));
@@ -235,7 +235,7 @@ async function getExplorerSelection() {
 }
 
 function updateStatusBar() {
-	const config = vscode.workspace.getConfiguration('jumpeditor');
+	const config = vscode.workspace.getConfiguration('editorjumper');
 	const selectedIDE = config.get('selectedIDE');
 	const ideConfigurations = config.get('ideConfigurations');
 	const currentIDE = ideConfigurations.find(ide => ide.name === selectedIDE);
@@ -257,7 +257,7 @@ function createConfigurationPanel(context) {
 
 	configPanel = vscode.window.createWebviewPanel(
 		'ideConfiguration',
-		'JumpEditor Configuration',
+		'EditorJumper Configuration',
 		vscode.ViewColumn.One,
 		{
 			enableScripts: true,
@@ -265,12 +265,12 @@ function createConfigurationPanel(context) {
 		}
 	);
 
-	const config = vscode.workspace.getConfiguration('jumpeditor');
+	const config = vscode.workspace.getConfiguration('editorjumper');
 	configPanel.webview.html = getWebviewContent(config.get('ideConfigurations'));
 
 	configPanel.webview.onDidReceiveMessage(
 		async message => {
-			const config = vscode.workspace.getConfiguration('jumpeditor');
+			const config = vscode.workspace.getConfiguration('editorjumper');
 			const ideConfigurations = config.get('ideConfigurations');
 			
 			console.log('Received message from webview:', message.command, message);
@@ -322,7 +322,7 @@ function createConfigurationPanel(context) {
 						vscode.window.showInformationMessage(`IDE configuration saved: ${newIDE.name}`);
 						
 						// 重新获取最新配置并更新WebView
-						const addUpdatedConfig = vscode.workspace.getConfiguration('jumpeditor');
+						const addUpdatedConfig = vscode.workspace.getConfiguration('editorjumper');
 						configPanel.webview.html = getWebviewContent(addUpdatedConfig.get('ideConfigurations'));
 						updateStatusBar();
 						break;
@@ -348,7 +348,7 @@ function createConfigurationPanel(context) {
 						}
 						
 						// 重新获取最新配置并更新WebView
-						const updateUpdatedConfig = vscode.workspace.getConfiguration('jumpeditor');
+						const updateUpdatedConfig = vscode.workspace.getConfiguration('editorjumper');
 						configPanel.webview.html = getWebviewContent(updateUpdatedConfig.get('ideConfigurations'));
 						updateStatusBar();
 						break;
@@ -366,7 +366,7 @@ function createConfigurationPanel(context) {
 						vscode.window.showInformationMessage('IDE configuration removed');
 						
 						// 重新获取最新配置并更新WebView
-						const updatedConfig = vscode.workspace.getConfiguration('jumpeditor');
+						const updatedConfig = vscode.workspace.getConfiguration('editorjumper');
 						configPanel.webview.html = getWebviewContent(updatedConfig.get('ideConfigurations'));
 						updateStatusBar();
 						break;
@@ -375,7 +375,7 @@ function createConfigurationPanel(context) {
 						await config.update('selectedIDE', message.ideName, true);
 						
 						// 重新获取最新配置并更新WebView
-						const selectUpdatedConfig = vscode.workspace.getConfiguration('jumpeditor');
+						const selectUpdatedConfig = vscode.workspace.getConfiguration('editorjumper');
 						configPanel.webview.html = getWebviewContent(selectUpdatedConfig.get('ideConfigurations'));
 						updateStatusBar();
 						break;
@@ -429,7 +429,7 @@ function createConfigurationPanel(context) {
 
 function getWebviewContent(ideConfigurations) {
 	const ideTypes = ["IDEA", "WebStorm", "PyCharm", "GoLand", "CLion", "PhpStorm", "RubyMine", "Rider"];
-	const config = vscode.workspace.getConfiguration('jumpeditor');
+	const config = vscode.workspace.getConfiguration('editorjumper');
 	const selectedIDE = config.get('selectedIDE');
 	
 	// 获取当前平台类型和对应的命令字段名
@@ -535,7 +535,7 @@ function getWebviewContent(ideConfigurations) {
 		</style>
 	</head>
 	<body>
-		<h2>JumpEditor Configurations</h2>
+		<h2>EditorJumper Configurations</h2>
 		<div class="action-buttons">
 			<button onclick="showAddForm()">Add New IDE</button>
 		</div>

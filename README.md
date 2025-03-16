@@ -1,7 +1,7 @@
-# JumpEditor
+# EditorJumper
 
 <div align="center">
-  <img src="image/pluginIcon.svg" alt="JumpEditor Icon" width="128" height="128"/>
+  <img src="image/pluginIcon.svg" alt="EditorJumper Icon" width="128" height="128"/>
 </div>
 
 <div >
@@ -12,7 +12,7 @@
 
 ## 🔍 Introduction
 
-JumpEditor is a VS Code extension that allows you to seamlessly jump between modern code editors (VS Code, Cursor, Trae, Windsurf) and JetBrains IDEs (such as IntelliJ IDEA, WebStorm, PyCharm, etc.). It maintains your cursor position and editing context, greatly improving development efficiency in multi-editor environments.
+EditorJumper is a VS Code extension that allows you to seamlessly jump between modern code editors (VS Code, Cursor, Trae, Windsurf) and JetBrains IDEs (such as IntelliJ IDEA, WebStorm, PyCharm, etc.). It maintains your cursor position and editing context, greatly improving development efficiency in multi-editor environments.
 
 ## 🌟 Features
 
@@ -42,13 +42,13 @@ JumpEditor is a VS Code extension that allows you to seamlessly jump between mod
 
 1. Open VS Code (or other supported editor)
 2. Go to Extensions view (Ctrl+Shift+X or Cmd+Shift+X)
-3. Search for "JumpEditor"
+3. Search for "EditorJumper"
 4. Click the Install button
 
 ## ⚙️ Configuration
 
 1. Open VS Code settings (Ctrl+, or Cmd+,)
-2. Search for "JumpEditor"
+2. Search for "EditorJumper"
 3. Configure the following options:
    - Select default JetBrains IDE
    - Add or edit custom IDE configurations
@@ -83,7 +83,7 @@ For each IDE, you can configure:
 
 ## 🔄 Column Calculation
 
-JumpEditor intelligently handles tab character width differences, ensuring cursor position accuracy when opening files in JetBrains IDEs.
+EditorJumper intelligently handles tab character width differences, ensuring cursor position accuracy when opening files in JetBrains IDEs.
 
 ## 🔄 Complementary Use
 

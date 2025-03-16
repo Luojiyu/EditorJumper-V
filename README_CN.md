@@ -1,7 +1,7 @@
-# JumpEditor-V
+# EditorJumper-V
 
 <div align="center">
-  <img src="image/pluginIcon.svg" alt="JumpEditor 图标" width="128" height="128"/>
+  <img src="image/pluginIcon.svg" alt="EditorJumper 图标" width="128" height="128"/>
 </div>
 
 <div >
@@ -12,7 +12,7 @@
 
 ## 🔍 简介
 
-JumpEditor 是一个 VS Code 类IDE的扩展，允许您在现代代码编辑器（VS Code、Cursor、Trae、Windsurf）和 JetBrains IDE（如 IntelliJ IDEA、WebStorm、PyCharm 等）之间无缝跳转。它能够保持光标位置和编辑上下文，大大提高多编辑器环境中的开发效率。
+EditorJumper 是一个 VS Code 类IDE的扩展，允许您在现代代码编辑器（VS Code、Cursor、Trae、Windsurf）和 JetBrains IDE（如 IntelliJ IDEA、WebStorm、PyCharm 等）之间无缝跳转。它能够保持光标位置和编辑上下文，大大提高多编辑器环境中的开发效率。
 
 ## 🌟 功能特点
 
@@ -42,13 +42,13 @@ JumpEditor 是一个 VS Code 类IDE的扩展，允许您在现代代码编辑器
 
 1. 打开 VS Code（或其他支持的编辑器）
 2. 转到扩展视图（Ctrl+Shift+X 或 Cmd+Shift+X）
-3. 搜索 "JumpEditor"
+3. 搜索 "EditorJumper"
 4. 点击安装按钮
 
 ## ⚙️ 配置
 
 1. 打开 VS Code 设置（Ctrl+, 或 Cmd+,）
-2. 搜索 "JumpEditor"
+2. 搜索 "EditorJumper"
 3. 配置以下选项：
    - 选择默认 JetBrains IDE
    - 添加或编辑自定义 IDE 配置
@@ -83,7 +83,7 @@ JumpEditor 是一个 VS Code 类IDE的扩展，允许您在现代代码编辑器
 
 ## 🔄 列计算
 
-JumpEditor 智能处理制表符（Tab）字符的宽度差异，确保在 JetBrains IDE 中打开文件时光标位置的准确性。
+EditorJumper 智能处理制表符（Tab）字符的宽度差异，确保在 JetBrains IDE 中打开文件时光标位置的准确性。
 
 ## 🔄 配套使用
 
