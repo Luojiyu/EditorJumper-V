@@ -73,7 +73,8 @@ async function activate(context) {
 		}
 
 		let filePath;
-		let lineNumber;
+		let lineNumber = 0;
+		let columnNumber = 0;
 
 		// 处理不同来源的调用
 		if (uri) {
@@ -85,6 +86,17 @@ async function activate(context) {
 			if (editor) {
 				filePath = editor.document.uri.fsPath;
 				lineNumber = editor.selection.active.line + 1;
+				// 获取列号，考虑 tab 字符的宽度
+				const position = editor.selection.active;
+				const line = editor.document.lineAt(position.line).text;
+				for (let i = 0; i < position.character; i++) {
+					if (line[i] === '\t') {
+						// 对于 JetBrains IDE，每个 tab 字符的宽度是 4
+						columnNumber += 4;
+					} else {
+						columnNumber += 1;
+					}
+				}
 			} else if (vscode.window.activeTextEditor) {
 				// 如果是在编辑器中但没有选中文件
 				filePath = vscode.window.activeTextEditor.document.uri.fsPath;
@@ -147,49 +159,20 @@ async function activate(context) {
 		
 		// 构建命令
 		let fullCommand = '';
-		let columnNumber = 0;
 		
-		// if (vscode.window.activeTextEditor) {
-		// 	const editor = vscode.window.activeTextEditor;
-		// 	const position = editor.selection.active;
-		// 	const line = editor.document.lineAt(position.line).text;
-		//
-		// 	// 计算列号，考虑tab字符的宽度
-		// 	columnNumber = 0; // 从0开始计数
-		// 	for (let i = 0; i < position.character; i++) {
-		// 		if (line[i] === '\t') {
-		// 			// 对于JetBrains IDE，每个tab需要加上3个额外的列数
-		// 			columnNumber += 4; // 1(字符本身) + 3(额外宽度)
-		// 		} else {
-		// 			columnNumber += 1;
-		// 		}
-		// 	}
-		// }
-		
-		if (filePath && lineNumber && columnNumber) {
-			// 如果有文件路径和光标位置，则打开项目并定位到文件的具体行列
-			const fileWithPosition = `${filePath}:${lineNumber}:${columnNumber}`;
-			if (platform === 'win32' && !commandPathIsFilePath) {
-				fullCommand = `cmd /c ${commandPath} --line ${lineNumber} --column ${columnNumber} ${filePath}`;
-			} else {
-				// 对于macOS、Linux或者是完整路径的情况
-				fullCommand = `${commandPath} --line ${lineNumber} --column ${columnNumber} ${filePath}`;
-			}
-		} else if (filePath) {
-			// 如果只有文件路径，则打开项目并定位到文件
-			if (platform === 'win32' && !commandPathIsFilePath) {
-				fullCommand = `cmd /c ${commandPath} ${filePath}`;
-			} else {
-				// 对于macOS、Linux或者是完整路径的情况
-				fullCommand = `${commandPath} ${filePath}`;
-			}
+		// 基础命令：始终使用项目路径
+		if (platform === 'win32' && !commandPathIsFilePath) {
+			fullCommand = `cmd /c ${commandPath} "${projectPath}"`;
 		} else {
-			// 如果没有文件路径，则只打开项目
-			if (platform === 'win32' && !commandPathIsFilePath) {
-				fullCommand = `cmd /c ${commandPath} ${projectPath}`;
+			fullCommand = `${commandPath} "${projectPath}"`;
+		}
+
+		// 如果有具体文件路径，添加文件相关参数
+		if (filePath) {
+			if (lineNumber > 0 || columnNumber> 0) {
+				fullCommand += ` --line ${lineNumber} --column ${columnNumber} "${filePath}"`;
 			} else {
-				// 对于macOS、Linux或者是完整路径的情况
-				fullCommand = `${commandPath} ${projectPath}`;
+				fullCommand += ` "${filePath}"`;
 			}
 		}
 
