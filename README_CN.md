@@ -1,7 +1,7 @@
 # EditorJumper-V
 
 <div align="center">
-  <img src="image/pluginIcon.svg" alt="EditorJumper 图标" width="128" height="128"/>
+  <img src="image/png/pluginIcon.png" alt="EditorJumper 图标" width="128" height="128"/>
 </div>
 
 <div >
