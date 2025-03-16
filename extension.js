@@ -76,42 +76,49 @@ async function activate(context) {
 		let lineNumber = 0;
 		let columnNumber = 0;
 
-		// 处理不同来源的调用
-		if (uri) {
-			// 来自文件资源管理器的右键点击或快捷键
-			filePath = uri.fsPath;
-		} else {
-			// 来自编辑器的右键点击或快捷键
-			const editor = vscode.window.activeTextEditor;
-			if (editor) {
-				filePath = editor.document.uri.fsPath;
-				lineNumber = editor.selection.active.line + 1;
-				// 获取列号，考虑 tab 字符的宽度
-				const position = editor.selection.active;
-				const line = editor.document.lineAt(position.line).text;
-				for (let i = 0; i < position.character; i++) {
-					if (line[i] === '\t') {
-						// 对于 JetBrains IDE，每个 tab 字符的宽度是 4
-						columnNumber += 4;
-					} else {
-						columnNumber += 1;
-					}
-				}
-			} else if (vscode.window.activeTextEditor) {
-				// 如果是在编辑器中但没有选中文件
-				filePath = vscode.window.activeTextEditor.document.uri.fsPath;
-			} else {
-				// 尝试从资源管理器获取选中的文件
-				const explorerSelection = await getExplorerSelection();
-				if (explorerSelection) {
-					filePath = explorerSelection.fsPath;
+		// 检查命令的触发来源
+		const editor = vscode.window.activeTextEditor;
+		
+		// 如果是从编辑器触发（包括右键菜单和快捷键）
+		if (uri?.scheme === 'file' && editor?.document.uri.fsPath === uri.fsPath) {
+			filePath = editor.document.uri.fsPath;
+			lineNumber = editor.selection.active.line + 1;
+			// 获取列号，考虑 tab 字符的宽度
+			const position = editor.selection.active;
+			const line = editor.document.lineAt(position.line).text;
+			for (let i = 0; i < position.character; i++) {
+				if (line[i] === '\t') {
+					columnNumber += 4;
+				} else {
+					columnNumber += 1;
 				}
 			}
 		}
-
-		if (!filePath) {
-			vscode.window.showErrorMessage('Unable to get file path');
-			return;
+		// 如果是从资源管理器触发
+		else if (uri) {
+			filePath = uri.fsPath;
+		}
+		// 如果是从编辑器触发但没有传入 uri（比如快捷键）
+		else if (editor) {
+			filePath = editor.document.uri.fsPath;
+			lineNumber = editor.selection.active.line + 1;
+			// 获取列号，考虑 tab 字符的宽度
+			const position = editor.selection.active;
+			const line = editor.document.lineAt(position.line).text;
+			for (let i = 0; i < position.character; i++) {
+				if (line[i] === '\t') {
+					columnNumber += 4;
+				} else {
+					columnNumber += 1;
+				}
+			}
+		}
+		// 最后尝试从资源管理器获取选中的文件
+		else {
+			const explorerSelection = await getExplorerSelection();
+			if (explorerSelection) {
+				filePath = explorerSelection.fsPath;
+			}
 		}
 
 		// 获取项目根目录
@@ -164,7 +171,9 @@ async function activate(context) {
 		if (platform === 'win32' && !commandPathIsFilePath) {
 			fullCommand = `cmd /c ${commandPath} "${projectPath}"`;
 		} else {
-			fullCommand = `${commandPath} "${projectPath}"`;
+			// 使用转义处理路径中的空格
+			const escapedCommandPath = commandPath.replace(/ /g, '\\ ');
+			fullCommand = `${escapedCommandPath} "${projectPath}"`;
 		}
 
 		// 如果有具体文件路径，添加文件相关参数
@@ -372,18 +381,13 @@ function createConfigurationPanel(context) {
 						};
 
 						if (process.platform === 'darwin') {
-							options.canSelectFiles = false;
-							options.canSelectFolders = true;
+							options.canSelectFiles = true;
+							options.canSelectFolders = false;
 						}
 
 						const result = await vscode.window.showOpenDialog(options);
 						if (result && result[0]) {
 							let selectedPath = result[0].fsPath;
-							
-							if (process.platform === 'darwin') {
-								const ideName = message.ideType.toLowerCase();
-								selectedPath = `${selectedPath}/Contents/MacOS/${ideName}`;
-							}
 							
 							configPanel.webview.postMessage({
 								command: 'setPath',
@@ -576,7 +580,7 @@ function getWebviewContent(ideConfigurations) {
 				<div style="flex: 1;">
 					<label for="command">${commandLabel}:</label>
 					<div style="display: flex; gap: 10px;">
-						<input type="text" id="command" readonly>
+						<input type="text" id="command" style="flex: 1;">
 						<button id="browseButton" onclick="selectPath()">Browse...</button>
 					</div>
 					${isMac ? `<div class="note">Note: On macOS, only custom IDEs need path configuration. Standard IDEs use default paths.</div>` : 
