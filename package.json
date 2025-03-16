@@ -85,21 +85,7 @@
               "id": "IDEA",
               "name": "IDEA",
               "type": "IDEA",
-              "command": "/Applications/IntelliJ IDEA.app/Contents/MacOS/idea",
-              "visible": true
-            },
-            {
-              "id": "WebStorm",
-              "name": "WebStorm",
-              "type": "WebStorm",
-              "command": "/Applications/WebStorm.app/Contents/MacOS/webstorm",
-              "visible": true
-            },
-            {
-              "id": "PyCharm",
-              "name": "PyCharm",
-              "type": "PyCharm",
-              "command": "/Applications/PyCharm.app/Contents/MacOS/pycharm",
+              "command": null,
               "visible": true
             }
           ],
