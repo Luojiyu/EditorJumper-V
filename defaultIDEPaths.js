@@ -34,7 +34,8 @@ const ideAppNames = {
     'CLion': ['CLion.app'],
     'PhpStorm': ['PhpStorm.app'],
     'RubyMine': ['RubyMine.app'],
-    'Rider': ['Rider.app']
+    'Rider': ['Rider.app'],
+    'Android Studio': ['Android Studio.app']
 };
 
 module.exports = {
@@ -78,5 +79,10 @@ module.exports = {
         darwin: findMacAppPath(ideAppNames['Rider']),
         win32: 'rider',
         linux: 'rider'
+    },
+    'Android Studio': {
+        darwin: findMacAppPath(ideAppNames['Android Studio']),
+        win32: 'studio',
+        linux: 'studio'
     }
 }; 
