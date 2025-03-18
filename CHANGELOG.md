@@ -1,9 +1,16 @@
 # Change Log
 
-All notable changes to the "editorjumper" extension will be documented in this file.
+## [1.0.0]
+### Added
+- Initial release of EditorJumper.
+- Seamless switching between VS Code, Cursor, Trae, Windsurf, and JetBrains IDEs.
+- Maintains cursor position and editing context.
+- Multiple trigger methods including right-click menu and status bar.
+- Easy target IDE selection.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [1.0.4] - 2025-03-18
+### Added
+- Added Q&A section in README for troubleshooting Mac issues.
+- Improved error handling for Mac users.
 
-- Initial release

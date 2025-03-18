@@ -93,3 +93,21 @@ Pull Requests and Issues are welcome to help improve this plugin!
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## Q&A
+
+### Q: What should I do if EditorJumper doesn't respond or throws an error when jumping to IntelliJ IDEA on Mac?
+
+A: If EditorJumper doesn't respond or throws an error when jumping to IntelliJ IDEA or other JetBrains IDEs on Mac, try the following steps:
+
+1. Open IntelliJ IDEA.
+2. Select `Tools` from the menu bar.
+3. Click `Create Command-line Launcher...`.
+4. Follow the prompts to complete the setup.
+
+This ensures that the command-line launcher is properly configured, resolving the jump issue.
+<div align="center">
+  <img src="image/macCreateCommand-line.png" alt="macCreateCommand-line" width="600"/>
+</div>
+
+---
