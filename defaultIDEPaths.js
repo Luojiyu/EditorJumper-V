@@ -1,29 +1,8 @@
 // 默认IDE路径配置
 const fs = require('fs');
 const os = require('os');
-
-// 在macOS上查找IDE安装路径
-function findMacAppPath(appNames) {
-    const commonLocations = [
-        '/Applications',
-        `${os.homedir()}/Applications`
-    ];
-
-    // 只查找.app文件
-    const appNamesWithExt = appNames.filter(name => name.endsWith('.app'));
-    
-    for (const location of commonLocations) {
-        for (const appName of appNamesWithExt) {
-            const fullPath = `${location}/${appName}`;
-            if (fs.existsSync(fullPath)) {
-                return fullPath;
-            }
-        }
-    }
-    
-    // 如果没有找到.app文件，返回null
-    return null;
-}
+const path = require('path');
+const { execSync } = require('child_process');
 
 // 为每个IDE定义可能的应用程序名称
 const ideAppNames = {
@@ -38,50 +17,50 @@ const ideAppNames = {
     'Android Studio': ['Android Studio.app']
 };
 
+// 直接返回命令名称，不执行查找
 module.exports = {
-    // 按IDE类型组织
     'IDEA': {
-        darwin: findMacAppPath(ideAppNames['IDEA']),
+        darwin: 'idea',
         win32: 'idea',
         linux: 'idea'
     },
     'WebStorm': {
-        darwin: findMacAppPath(ideAppNames['WebStorm']),
+        darwin: 'webstorm',
         win32: 'webstorm',
         linux: 'webstorm'
     },
     'PyCharm': {
-        darwin: findMacAppPath(ideAppNames['PyCharm']),
+        darwin: 'pycharm',
         win32: 'pycharm',
         linux: 'pycharm'
     },
     'GoLand': {
-        darwin: findMacAppPath(ideAppNames['GoLand']),
+        darwin: 'goland',
         win32: 'goland',
         linux: 'goland'
     },
     'CLion': {
-        darwin: findMacAppPath(ideAppNames['CLion']),
+        darwin: 'clion',
         win32: 'clion',
         linux: 'clion'
     },
     'PhpStorm': {
-        darwin: findMacAppPath(ideAppNames['PhpStorm']),
+        darwin: 'phpstorm',
         win32: 'phpstorm',
         linux: 'phpstorm'
     },
     'RubyMine': {
-        darwin: findMacAppPath(ideAppNames['RubyMine']),
+        darwin: 'rubymine',
         win32: 'rubymine',
         linux: 'rubymine'
     },
     'Rider': {
-        darwin: findMacAppPath(ideAppNames['Rider']),
+        darwin: 'rider',
         win32: 'rider',
         linux: 'rider'
     },
     'Android Studio': {
-        darwin: findMacAppPath(ideAppNames['Android Studio']),
+        darwin: 'studio',
         win32: 'studio',
         linux: 'studio'
     }

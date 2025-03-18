@@ -1,6 +1,8 @@
 const vscode = require('vscode');
 const os = require('os');
 const fs = require('fs');
+// 避免循环引用
+// const extension = require('./extension');
 
 let configPanel = undefined;
 
@@ -20,10 +22,12 @@ function createConfigurationPanel(context) {
         vscode.ViewColumn.One,
         {
             enableScripts: true,
-            retainContextWhenHidden: true
+            retainContextWhenHidden: false, // 不保留隐藏时的上下文
+            enableFindWidget: true
         }
     );
 
+    // 强制重新加载配置
     const config = vscode.workspace.getConfiguration('editorjumper');
     configPanel.webview.html = getWebviewContent(config.get('ideConfigurations'));
 
@@ -41,14 +45,35 @@ function createConfigurationPanel(context) {
                         console.log('Adding new IDE:', newIDE);
                         
                         // 检查是否存在相同名称的非自定义IDE
-                        if (newIDE.isCustom === false && ideConfigurations.some(ide => 
-                            ide.isCustom === false && ide.name === newIDE.name)) {
+                        const existingIDE = ideConfigurations.find(ide => ide.name === newIDE.name);
+                        
+                        // 只有在添加新IDE（非编辑现有IDE）且名称已存在时才提示错误
+                        if (newIDE.isCustom === false && 
+                            ideConfigurations.some(ide => 
+                                ide.isCustom === false && 
+                                ide.name === newIDE.name && 
+                                // 如果是编辑现有IDE，则不检查自身
+                                (!existingIDE || ide !== existingIDE)
+                            )) {
                             vscode.window.showErrorMessage(`IDE ${newIDE.name} already exists`);
                             return;
                         }
                         
+                        // 如果是自定义IDE且有命令路径，尝试查找完整路径
+                        if (newIDE.isCustom && newIDE.commandPath /* && extension.findCommandPath */) {
+                            try {
+                                // 暂时注释掉findCommandPath调用，避免循环引用
+                                // const fullPath = extension.findCommandPath(newIDE.commandPath);
+                                // if (fullPath !== newIDE.commandPath) {
+                                //     console.log(`Found command path for ${newIDE.name}: ${fullPath}`);
+                                //     newIDE.commandPath = fullPath;
+                                // }
+                            } catch (error) {
+                                console.error('Error finding command path:', error);
+                            }
+                        }
+                        
                         // 如果是编辑现有IDE，保留其他平台的命令路径
-                        const existingIDE = ideConfigurations.find(ide => ide.name === newIDE.name);
                         let updatedIDE = {
                             ...newIDE,
                             isCustom: newIDE.isCustom === true,
@@ -111,6 +136,8 @@ function createConfigurationPanel(context) {
                         }
                         const filteredConfigurations = ideConfigurations.filter(ide => ide.name !== message.ideName);
                         console.log('Filtered configurations:', filteredConfigurations);
+                        console.log('Original configurations:', ideConfigurations);
+                        console.log('IDE to remove:', message.ideName);
                         await config.update('ideConfigurations', filteredConfigurations, true);
                         vscode.window.showInformationMessage('IDE configuration removed');
                         
@@ -141,9 +168,9 @@ function createConfigurationPanel(context) {
 
                         if (process.platform === 'darwin') {
                             options.canSelectFiles = true;
-                            options.canSelectFolders = true; // 在macOS上允许选择文件夹，因为.app实际上是一个文件夹
-                            options.title = 'Select JetBrains IDE Application (.app file)';
-                            options.openLabel = 'Select Application';
+                            options.canSelectFolders = false; // 不再允许选择文件夹，因为不支持.app路径
+                            options.title = 'Select JetBrains IDE Command';
+                            options.openLabel = 'Select';
                         }
 
                         const result = await vscode.window.showOpenDialog(options);
@@ -192,7 +219,7 @@ function getWebviewContent(ideConfigurations) {
     let commandLabel = 'Command Path';
     
     if (platform === 'darwin') {
-        commandLabel = 'Application Path';
+        commandLabel = 'Command';
     }
 
     // 是否是macOS平台
@@ -327,10 +354,7 @@ function getWebviewContent(ideConfigurations) {
             <div class="form-group">
                 <label for="ideName">IDE Name:</label>
                 <select id="ideName">
-                    ${ideTypes.map(type => {
-                        const isDisabled = ideConfigurations.some(ide => !ide.isCustom && ide.name === type);
-                        return `<option value="${type}" ${isDisabled ? 'disabled' : ''}>${type}${isDisabled ? ' (Already exists)' : ''}</option>`;
-                    }).join('')}
+                    ${ideTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
                 </select>
                 <input type="text" id="customName" style="display: none;" placeholder="Enter IDE name">
             </div>
@@ -345,7 +369,7 @@ function getWebviewContent(ideConfigurations) {
                         <input type="text" id="command" style="flex: 1;">
                         <button id="browseButton" onclick="selectPath()">Browse...</button>
                     </div>
-                    ${isMac ? `<div class="note">Note: On macOS, please select the complete application path (e.g.: /Applications/IntelliJ IDEA.app or ~/Applications/IntelliJ IDEA.app)</div>` : 
+                    ${isMac ? `<div class="note">Note: Please provide the command name (e.g., idea, pycharm, webstorm). App paths (.app) are not supported.</div>` : 
                     `<div class="note">Note: If left empty, system default path will be used if available.</div>`}
                 </div>
             </div>
@@ -368,6 +392,8 @@ function getWebviewContent(ideConfigurations) {
             const platform = '${platform}';
             const commandLabel = '${commandLabel}';
             const isMac = ${isMac};
+            // 跟踪当前正在编辑的IDE名称
+            let currentEditingIDE = '';
 
             function showAddForm() {
                 document.getElementById('formTitle').textContent = 'Add New IDE';
@@ -376,6 +402,10 @@ function getWebviewContent(ideConfigurations) {
                 document.getElementById('isHidden').checked = false;
                 toggleCustomIDE();
                 document.getElementById('command').value = '';
+                // 重置当前编辑的IDE
+                currentEditingIDE = '';
+                // 更新下拉选项的禁用状态
+                updateSelectOptions();
             }
 
             function toggleCustomIDE() {
@@ -388,6 +418,9 @@ function getWebviewContent(ideConfigurations) {
                 nameSelect.style.display = isCustom ? 'none' : 'block';
                 customName.style.display = isCustom ? 'block' : 'none';
                 
+                // 更新下拉选项的禁用状态
+                updateSelectOptions();
+                
                 // 在macOS上，只有自定义IDE才能配置路径
                 if (isMac) {
                     commandGroup.style.display = isCustom ? 'block' : 'none';
@@ -397,6 +430,8 @@ function getWebviewContent(ideConfigurations) {
                     customName.value = '';
                     document.getElementById('command').value = '';
                 } else {
+                    // 更新下拉选项的禁用状态
+                    updateSelectOptions();
                     const firstAvailableOption = Array.from(nameSelect.options).find(option => !option.disabled);
                     if (firstAvailableOption) {
                         nameSelect.value = firstAvailableOption.value;
@@ -409,10 +444,30 @@ function getWebviewContent(ideConfigurations) {
                 }
             }
 
+            // 更新下拉选项的禁用状态
+            function updateSelectOptions() {
+                const nameSelect = document.getElementById('ideName');
+                if (!nameSelect) return;
+                
+                Array.from(nameSelect.options).forEach(option => {
+                    // 检查是否已存在同名非自定义IDE，但排除当前正在编辑的IDE
+                    const isDisabled = configurations.some(ide => 
+                        !ide.isCustom && 
+                        ide.name === option.value && 
+                        ide.name !== currentEditingIDE
+                    );
+                    option.disabled = isDisabled;
+                    option.text = option.value + (isDisabled ? ' (Already exists)' : '');
+                });
+            }
+
             function editIDE(name) {
                 const ide = configurations.find(i => i.name === name);
                 if (!ide) return;
 
+                // 设置当前正在编辑的IDE名称
+                currentEditingIDE = name;
+                
                 document.getElementById('formTitle').textContent = 'Edit IDE';
                 document.getElementById('ideForm').style.display = 'block';
                 
@@ -426,6 +481,9 @@ function getWebviewContent(ideConfigurations) {
                 isHiddenCheckbox.checked = ide.hidden === true;
                 nameSelect.style.display = ide.isCustom ? 'none' : 'block';
                 customName.style.display = ide.isCustom ? 'block' : 'none';
+                
+                // 更新下拉选项的禁用状态
+                updateSelectOptions();
                 
                 // 在macOS上，只有自定义IDE才能配置路径
                 if (isMac) {
@@ -460,7 +518,7 @@ function getWebviewContent(ideConfigurations) {
                 } else if (!isCustom && !command) {
                     // 非macOS平台上，非自定义IDE可以有空命令路径，将使用默认路径
                 } else if (isCustom && !command) {
-                    alert('Please provide a command path');
+                    alert('Please provide a command name or path');
                     return;
                 }
 
@@ -507,20 +565,19 @@ function getWebviewContent(ideConfigurations) {
 
             function cancelEdit() {
                 document.getElementById('ideForm').style.display = 'none';
+                // 重置当前编辑的IDE
+                currentEditingIDE = '';
             }
 
             function removeIDE(name) {
                 if (name === selectedIDE) {
-                    alert('Cannot remove currently selected IDE. Please select another IDE first');
                     return;
                 }
                 
-                if (confirm('Are you sure you want to remove this IDE configuration?')) {
-                    vscode.postMessage({
-                        command: 'removeIDE',
-                        ideName: name
-                    });
-                }
+                vscode.postMessage({
+                    command: 'removeIDE',
+                    ideName: name
+                });
             }
 
             function selectIDE(name) {

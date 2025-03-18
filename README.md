@@ -1,7 +1,7 @@
 # EditorJumper
 
 <div align="center">
-  <img src="image/png/pluginIcon.png" alt="EditorJumper Icon" width="128" height="128"/>
+  <img src="image/pluginIcon.png" alt="EditorJumper Icon" width="128" height="128"/>
 </div>
 
 <div >
@@ -13,6 +13,10 @@
 ## 🔍 Introduction
 
 EditorJumper is a VS Code extension that allows you to seamlessly jump between modern code editors (VS Code, Cursor, Trae, Windsurf) and JetBrains IDEs (such as IntelliJ IDEA, WebStorm, PyCharm, etc.). It maintains your cursor position and editing context, greatly improving development efficiency in multi-editor environments.
+
+<div align="center">
+  <img src="image/JumpAndBack.gif" alt="Jump and Back Demo" width="800"/>
+</div>
 
 ## 🌟 Features
 
@@ -32,6 +36,10 @@ EditorJumper is a VS Code extension that allows you to seamlessly jump between m
 
 - 🎚️ **Easy Target IDE Selection**
   - Status bar widget - click the IDE icon to select which JetBrains IDE to jump to
+  
+<div align="center">
+  <img src="image/changeTargetIDE.png" alt="Change Target IDE" width="600"/>
+</div>
 
 ## 💻 System Requirements
 
@@ -47,47 +55,36 @@ EditorJumper is a VS Code extension that allows you to seamlessly jump between m
 
 ## ⚙️ Configuration
 
-1. Open VS Code settings (Ctrl+, or Cmd+,)
-2. Search for "EditorJumper"
-3. Configure the following options:
-   - Select default JetBrains IDE
-   - Add or edit custom IDE configurations
+Click the settings icon (⚙️) in the status bar to open the configuration panel:
 
-You can also quickly access the configuration interface by clicking the settings icon (⚙️) in the status bar.
+<div align="center">
+  <img src="image/ConfigurationPanel.png" alt="Configuration Panel" width="600"/>
+</div>
 
-### Configuration Interface
-
-The configuration interface allows you to:
-- Add new IDE configurations
-- Edit existing IDE configurations
-- Hide unwanted IDEs
-- Select the default IDE
-
-For each IDE, you can configure:
-- IDE name
-- Command path (based on operating system)
-- Whether to hide it in the selection list
+### Configuration Options
+- Select default JetBrains IDE
+- Add or edit custom IDE configurations
+- Configure IDE paths
+- Hide/show specific IDEs
+- Customize keyboard shortcuts
 
 ## 🚀 Usage
 
-### Via Right-Click Menu
+1. **Via Right-Click Menu**
+   - Right-click in the editor or file explorer
+   - Select "Open in JetBrains IDE"
 
-1. Right-click in the editor or file explorer
-2. Select "Open in JetBrains IDE"
+2. **Via Status Bar**
+   - Click the IDE icon in the bottom status bar
+   - Select your target JetBrains IDE
+   - Use any trigger method to jump
 
-### Via Status Bar
-
-1. Click the IDE icon in the bottom status bar
-2. Select the JetBrains IDE you want to jump to
-3. Use any of the trigger methods above to perform the jump
-
-## 🔄 Column Calculation
-
-EditorJumper intelligently handles tab character width differences, ensuring cursor position accuracy when opening files in JetBrains IDEs.
+3. **Via Keyboard Shortcuts**
+   - Use customized shortcuts to quickly jump between editors
 
 ## 🔄 Complementary Use
 
-For a complete bidirectional workflow, it is recommended to use this extension together with [EditorJumper](https://github.com/wanniwa/EditorJumper), a JetBrains IDE plugin that allows you to jump back from JetBrains IDEs to VS Code, Cursor, Trae, or Windsurf. Using both tools together creates a seamless development experience across all your favorite editors.
+For a complete bidirectional workflow, use this extension with [EditorJumper](https://github.com/wanniwa/EditorJumper) JetBrains plugin to enable jumping back from JetBrains IDEs to VS Code/Cursor/Trae/Windsurf.
 
 ## 🤝 Contribution
 

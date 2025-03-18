@@ -1,18 +1,77 @@
 const vscode = require('vscode');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const defaultIDEPaths = require('./defaultIDEPaths');
-const configPanel = require('./configPanel');
+let configPanel;
 
 let statusBarItem;
+
+/**
+ * 查找命令的完整路径
+ * @param {string} command 命令名称
+ * @returns {string} 命令的完整路径，如果找不到则返回原命令
+ */
+function findCommandPath(command) {
+	try {
+		// 如果命令已经是绝对路径，直接返回
+		if (path.isAbsolute(command) && fs.existsSync(command)) {
+			return command;
+		}
+		
+		// 尝试使用which命令查找绝对路径
+		if (process.platform === 'darwin' || process.platform === 'linux') {
+			try {
+				const whichOutput = execSync(`which ${command}`, { encoding: 'utf8' }).trim();
+				if (whichOutput && fs.existsSync(whichOutput)) {
+					console.log(`Found absolute path for ${command}: ${whichOutput}`);
+					return whichOutput;
+				}
+			} catch (e) {
+				// which命令失败，继续使用原始命令
+				console.log(`Could not find absolute path for ${command}: ${e.message}`);
+			}
+		}
+		
+		// 常见的IDE命令路径
+		const commonPaths = [
+			'/usr/local/bin',
+			'/usr/bin',
+			'/opt/homebrew/bin',
+			`${os.homedir()}/bin`,
+			'/Applications/JetBrains Toolbox',
+			`${os.homedir()}/Applications/JetBrains Toolbox`,
+			`${os.homedir()}/Library/Application Support/JetBrains/Toolbox/scripts`
+		];
+		
+		// 在每个路径中查找命令
+		for (const dir of commonPaths) {
+			if (!fs.existsSync(dir)) continue;
+			
+			const possiblePath = path.join(dir, command);
+			if (fs.existsSync(possiblePath)) {
+				console.log(`Found command at: ${possiblePath}`);
+				return possiblePath;
+			}
+		}
+		
+		// 如果找不到，返回原命令
+		return command;
+	} catch (error) {
+		console.error('Error finding command path:', error);
+		return command;
+	}
+}
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 async function activate(context) {
 	console.log('Congratulations, your extension "editorjumper" is now active!');
+
+	// 在activate函数中加载configPanel模块，避免循环引用
+	configPanel = require('./configPanel');
 
 	const config = vscode.workspace.getConfiguration('editorjumper');
 	const currentIDE = config.get('selectedIDE');
@@ -89,37 +148,20 @@ async function activate(context) {
 		}
 
 		let filePath;
-		let lineNumber = 0;
-		let columnNumber = 0;
-
-		// 检查命令的触发来源
+		let lineNumber = 1;
+		let columnNumber = 1;
 		const editor = vscode.window.activeTextEditor;
 
 		if (uri) {
-			try {
-			  // 获取文件或文件夹的元信息
-			  const stat = await vscode.workspace.fs.stat(uri);
-	  
-			  // 判断是文件还是文件夹
-			  if (stat.type === vscode.FileType.File) {
-				filePath = uri.fsPath;
-			  }
-			} catch (error) {
-				console.error('Error checking file/directory status:', error);
+			filePath = uri.fsPath;
+			if (editor && editor.document.uri.fsPath === filePath) {
+				lineNumber = editor.selection.active.line + 1;
+				columnNumber = editor.selection.active.character
 			}
 		} else if (editor) {
 			filePath = editor.document.uri.fsPath;
 			lineNumber = editor.selection.active.line + 1;
-			// 获取列号，考虑 tab 字符的宽度
-			const position = editor.selection.active;
-			const line = editor.document.lineAt(position.line).text;
-			for (let i = 0; i < position.character; i++) {
-				if (line[i] === '\t') {
-					columnNumber += 4;
-				} else {
-					columnNumber += 1;
-				}
-			}
+			columnNumber = editor.selection.active.character
 		}
 
 		// 获取项目根目录
@@ -158,7 +200,7 @@ async function activate(context) {
 			);
 
 			if (result === 'Configure') {
-				const panel = configPanel.createConfigurationPanel(context);
+				configPanel.createConfigurationPanel(context);
 				// 高亮显示需要配置的IDE
 				configPanel.highlightIDE(ideConfig.name);
 			}
@@ -168,62 +210,19 @@ async function activate(context) {
 		// 判断命令路径是否为文件路径
 		const commandPathIsFilePath = commandPath.includes('/') || commandPath.includes('\\');
 		const fileExists = commandPathIsFilePath && fs.existsSync(commandPath);
-
-		// 构建命令
-		let command = '';
-		let args = [];
-
-		// 根据平台和命令类型构建命令和参数
-		if (platform === 'darwin') {
-			// macOS上使用open命令启动应用程序
-			command = 'open';
-			// 确保commandPath是.app文件路径
-			if (!commandPath.endsWith('.app')) {
-				vscode.window.showErrorMessage(`On macOS, you must select a complete application path (.app file)`);
-				return;
-			}
-
-			// 使用数组构建参数，避免路径中的空格问题
-			args = ['-a', commandPath, '--args', projectPath];
-
-			// 如果有具体文件路径，添加文件相关参数
-			if (filePath) {
-				if (lineNumber > 0 || columnNumber > 0) {
-					args.push('--line', lineNumber.toString(), '--column', columnNumber.toString(), filePath);
-				} else {
-					args.push(filePath);
-				}
-			}
-		} else if (platform === 'win32' && !commandPathIsFilePath) {
-			// Windows上使用cmd启动命令
-			command = 'cmd';
-			args = ['/c', commandPath, projectPath];
-
-			// 如果有具体文件路径，添加文件相关参数
-			if (filePath) {
-				if (lineNumber > 0 || columnNumber > 0) {
-					args.push('--line', lineNumber.toString(), '--column', columnNumber.toString(), filePath);
-				} else {
-					args.push(filePath);
-				}
-			}
-		} else {
-			// 其他情况直接使用命令路径
-			command = commandPath;
-			args = [projectPath];
-
-			// 如果有具体文件路径，添加文件相关参数
-			if (filePath) {
-				if (lineNumber > 0 || columnNumber > 0) {
-					args.push('--line', lineNumber.toString(), '--column', columnNumber.toString(), filePath);
-				} else {
-					args.push(filePath);
-				}
+		
+		// 如果命令不是绝对路径，尝试查找绝对路径
+		if (!commandPathIsFilePath && platform !== 'win32') {
+			// 使用findCommandPath函数查找命令的完整路径
+			const fullPath = findCommandPath(commandPath);
+			if (fullPath !== commandPath) {
+				console.log(`Found command path: ${fullPath}`);
+				commandPath = fullPath;
 			}
 		}
 
 		// 执行命令
-		console.log('Executing command:', command, args);
+		console.log('Executing command with path:', commandPath);
 		try {
 			// 构建完整命令，确保正确处理空格
 			let fullCommand = '';
@@ -239,35 +238,29 @@ async function activate(context) {
 			}
 			
 			// 根据平台构建命令
-			if (platform === 'darwin') {
-				// macOS上，使用引号包裹路径
-				fullCommand = `${command} -a "${commandPath}" --args "${projectPath}" ${filePathArgs}`;
-			} else if (platform === 'win32' && !commandPathIsFilePath) {
+			if (platform === 'win32' && !commandPathIsFilePath) {
 				// Windows上，使用引号包裹路径
-				fullCommand = `${command} /c ${commandPath} "${projectPath}" ${filePathArgs}`;
+				fullCommand = `cmd /c ${commandPath} "${projectPath}" ${filePathArgs}`;
 			} else {
-				// 其他情况，使用引号包裹路径
+				// 其他情况（包括macOS和Linux），使用引号包裹路径
 				fullCommand = `"${commandPath}" "${projectPath}" ${filePathArgs}`;
 			}
 			
 			console.log('Full command:', fullCommand);
 			
 			// 使用exec执行命令
-			exec(fullCommand, {
-				cwd: projectPath,
-				shell: true,
-				windowsHide: true
+			exec(fullCommand,{
+				shell: true
 			}, (error, stdout, stderr) => {
 				if (error) {
 					console.error('Command execution error:', error);
 					vscode.window.showErrorMessage(`Failed to launch IDE: ${error.message}`);
-					return;
-				}
-				if (stderr) {
-					console.error('Command execution warning:', stderr);
 				}
 				if (stdout) {
-					console.log('Command output:', stdout);
+					console.warn('stdout:', stdout);
+				}
+				if (stderr) {
+					console.warn('stderr:', stderr);
 				}
 			});
 		} catch (error) {
@@ -325,5 +318,6 @@ function deactivate() {
 
 module.exports = {
 	activate,
-	deactivate
+	deactivate,
+	findCommandPath
 }
