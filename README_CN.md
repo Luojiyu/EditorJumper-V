@@ -12,7 +12,7 @@
 
 ## 🔍 简介
 
-EditorJumper 是一个 VS Code 类IDE的扩展，允许您在现代代码编辑器（VS Code、Cursor、Trae、Windsurf）和 JetBrains IDE（如 IntelliJ IDEA、WebStorm、PyCharm 等）之间无缝跳转。它能够保持光标位置和编辑上下文，大大提高多编辑器环境中的开发效率。
+EditorJumper 是一个 VS Code 类IDE的扩展，允许您在现代代码编辑器（VS Code、Cursor、Trae、Windsurf，Xcode）和 JetBrains IDE（如 IntelliJ IDEA、WebStorm、PyCharm 等）之间无缝跳转。它能够保持光标位置和编辑上下文，大大提高多编辑器环境中的开发效率。
 
 ## 🌟 功能特点
 

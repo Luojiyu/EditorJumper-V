@@ -14,3 +14,8 @@
 - Added Q&A section in README for troubleshooting Mac issues.
 - Improved error handling for Mac users.
 
+## [1.1.0] - 2025-03-21
+### Added
+- Added support for Xcode on macOS.
+
+

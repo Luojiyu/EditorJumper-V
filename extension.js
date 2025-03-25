@@ -8,6 +8,13 @@ let configPanel;
 
 let statusBarItem;
 
+// 添加Xcode的默认路径
+if (!defaultIDEPaths['Xcode']) {
+	defaultIDEPaths['Xcode'] = {
+		darwin: '/Applications/Xcode.app/Contents/MacOS/Xcode'
+	};
+}
+
 /**
  * 查找命令的完整路径
  * @param {string} command 命令名称
@@ -80,6 +87,23 @@ async function activate(context) {
 	if (!currentIDE || !ideConfigurations.find(ide => ide.name === currentIDE)) {
 		if (ideConfigurations.length > 0) {
 			await config.update('selectedIDE', ideConfigurations[0].name, true);
+		}
+	}
+
+	// 确保在ideConfigurations中包含Xcode的配置，仅在macOS上
+	if (process.platform === 'darwin') {
+		const config = vscode.workspace.getConfiguration('editorjumper');
+		let ideConfigurations = config.get('ideConfigurations');
+
+		// 如果Xcode配置不存在，则添加
+		if (!ideConfigurations.find(ide => ide.name === 'Xcode')) {
+			ideConfigurations.push({
+				name: 'Xcode',
+				commandPath: null, // 设置为null
+				isCustom: false,
+				hidden: false
+			});
+			config.update('ideConfigurations', ideConfigurations, true);
 		}
 	}
 
@@ -237,32 +261,74 @@ async function activate(context) {
 				}
 			}
 			
-			// 根据平台构建命令
-			if (platform === 'win32' && !commandPathIsFilePath) {
-				// Windows上，使用引号包裹路径
-				fullCommand = `cmd /c ${commandPath} "${projectPath}" ${filePathArgs}`;
+			if (ideConfig.name === 'Xcode' && process.platform === 'darwin') {
+				// 检查Xcode是否已经运行
+				exec('ps aux | grep -v grep | grep "Xcode.app/Contents/MacOS/Xcode"', (error, stdout, stderr) => {
+					const isXcodeRunning = stdout.trim().length > 0;
+
+					// 直接使用项目目录
+					fullCommand = `open -a "Xcode" "${projectPath}"`;
+					console.log('Opening Xcode project:', fullCommand);
+					
+					// 使用exec执行命令
+					exec(fullCommand, {
+						shell: true
+					}, (error, stdout, stderr) => {
+						if (error) {
+							console.error('Command execution error:', error);
+							vscode.window.showErrorMessage(`Failed to launch Xcode: ${error.message}`);
+							return;
+						}
+						
+						// 如果Xcode已经运行，直接打开文件，否则等待3秒
+						const delay = isXcodeRunning ? 0 : 5000;
+						
+						if (filePath) {
+							setTimeout(() => {
+								// 使用xed -l命令打开文件并定位到特定行
+								const openFileCommand = `xed -l ${lineNumber} "${filePath}"`;
+								console.log('Opening file in Xcode:', openFileCommand);
+								
+								exec(openFileCommand, {
+									shell: true
+								}, (error, stdout, stderr) => {
+									if (error) {
+										console.error('File opening error:', error);
+										vscode.window.showErrorMessage(`Failed to open file in Xcode: ${error.message}`);
+									}
+								});
+							}, delay);
+						}
+					});
+				});
 			} else {
-				// 其他情况（包括macOS和Linux），使用引号包裹路径
-				fullCommand = `"${commandPath}" "${projectPath}" ${filePathArgs}`;
+				// 其他IDE的命令构建逻辑
+				if (platform === 'win32' && !commandPathIsFilePath) {
+					// Windows上，使用引号包裹路径
+					fullCommand = `cmd /c ${commandPath} "${projectPath}" ${filePathArgs}`;
+				} else {
+					// 其他情况（包括macOS和Linux），使用引号包裹路径
+					fullCommand = `"${commandPath}" "${projectPath}" ${filePathArgs}`;
+				}
+				
+				console.log('Full command:', fullCommand);
+				
+				// 使用exec执行命令
+				exec(fullCommand, {
+					shell: true
+				}, (error, stdout, stderr) => {
+					if (error) {
+						console.error('Command execution error:', error);
+						vscode.window.showErrorMessage(`Failed to launch IDE: ${error.message}`);
+					}
+					if (stdout) {
+						console.warn('stdout:', stdout);
+					}
+					if (stderr) {
+						console.warn('stderr:', stderr);
+					}
+				});
 			}
-			
-			console.log('Full command:', fullCommand);
-			
-			// 使用exec执行命令
-			exec(fullCommand,{
-				shell: true
-			}, (error, stdout, stderr) => {
-				if (error) {
-					console.error('Command execution error:', error);
-					vscode.window.showErrorMessage(`Failed to launch IDE: ${error.message}`);
-				}
-				if (stdout) {
-					console.warn('stdout:', stdout);
-				}
-				if (stderr) {
-					console.warn('stderr:', stderr);
-				}
-			});
 		} catch (error) {
 			vscode.window.showErrorMessage(`Failed to start IDE process: ${error.message}`);
 		}

@@ -2,7 +2,7 @@
   "name": "editorjumper",
   "displayName": "EditorJumper",
   "description": "A VS Code extension that allows you to seamlessly jump between JetBrains IDEs and other popular code editors (such as VS Code, Cursor, Trae, and Windsurf). It maintains your cursor position and editing context, greatly improving development efficiency in multi-editor environments.",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "publisher": "wanniwa",
   "repository": {
     "type": "git",
