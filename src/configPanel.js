@@ -59,20 +59,6 @@ function createConfigurationPanel(context) {
                             return;
                         }
                         
-                        // 如果是自定义IDE且有命令路径，尝试查找完整路径
-                        if (newIDE.isCustom && newIDE.commandPath /* && extension.findCommandPath */) {
-                            try {
-                                // 暂时注释掉findCommandPath调用，避免循环引用
-                                // const fullPath = extension.findCommandPath(newIDE.commandPath);
-                                // if (fullPath !== newIDE.commandPath) {
-                                //     console.log(`Found command path for ${newIDE.name}: ${fullPath}`);
-                                //     newIDE.commandPath = fullPath;
-                                // }
-                            } catch (error) {
-                                console.error('Error finding command path:', error);
-                            }
-                        }
-                        
                         // 如果是编辑现有IDE，保留其他平台的命令路径
                         let updatedIDE = {
                             ...newIDE,
