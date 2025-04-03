@@ -86,7 +86,7 @@ async function activate(context) {
 
 	if (!currentIDE || !ideConfigurations.find(ide => ide.name === currentIDE)) {
 		if (ideConfigurations.length > 0) {
-			await config.update('selectedIDE', ideConfigurations[0].name, true);
+			await config.update('selectedIDE', ideConfigurations[0].name, false);
 		}
 	}
 
@@ -153,7 +153,7 @@ async function activate(context) {
 				vscode.commands.executeCommand('editorjumper.configureIDE');
 			} else {
 				// 选择IDE
-				await config.update('selectedIDE', selected.name, true);
+				await config.update('selectedIDE', selected.name, false);
 				updateStatusBar();
 			}
 		}

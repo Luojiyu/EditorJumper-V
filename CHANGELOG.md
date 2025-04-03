@@ -18,4 +18,8 @@
 ### Added
 - Added support for Xcode on macOS.
 
+## [1.1.1] - 2025-04-03
+### Changed
+- Changed `selectedIDE` configuration to be project-level (resource scope).
+
 
